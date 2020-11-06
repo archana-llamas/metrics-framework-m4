@@ -1,5 +1,4 @@
 auth:
-  mode: connected-app-credentials # valid options are: platform-credentials or connected-app-credentials
   
   orgId: "![Dccn7YIb61rT1p1GOENC/JkV1PrDbT5EBAHiefwawHP31ccIpOu/ST+bZyN6OlcK]"
   
