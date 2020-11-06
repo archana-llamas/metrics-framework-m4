@@ -65,7 +65,7 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 			
 			</when>
 			<otherwise >
-				<http:request method="POST" doc:name="Splunk HTTP Request" doc:id="0a32071e-0d90-4748-bb18-8fc97d6c5213" config-ref="HTTP_Splunk_Request_configuration" path="/services/collector/event">
+				<http:request method="POST" doc:name="Splunk HTTP Request" doc:id="0a32071e-0d90-4748-bb18-8fc97d6c5213" config-ref="HTTP_Splunk_Request_configuration" path="/services/collector/event" requestStreamingMode="AUTO">
 			<http:headers><![CDATA[#[output application/java
 ---
 {

@@ -1,20 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
 
+	<validation:config name="Validation_Config" doc:name="Validation Config" doc:id="e6256da8-d8bf-4630-bab6-d8af3e8d4743" />
+	<sub-flow name="api-call-exchange-assets-aggregate" doc:id="69b98aad-1ea8-496b-a187-0e76276c9be7" >
+		<flow-ref doc:name="Flow Reference" doc:id="18777bbf-cf8e-475a-b997-796cd8f55202" name="api-call-exchange-assets-flow"/>
+		<choice doc:name="Choice" doc:id="8417afa7-93bd-45f2-bd44-919ebf088b2e" >
+			<when expression="#[sizeOf(payload) == 250]">
+				<set-variable value="#[p('anypoint.platform.apis.exchange.graphql.limit')]" doc:name="Set Variable" doc:id="7f294e1d-6740-4ed0-bbc7-5b113a964a97" variableName="offset"/>
+				<flow-ref doc:name="Flow Reference" doc:id="616a46ee-4e90-49ae-8d48-185db0f7fdbd" name="api-call-exchange-assets-flow" target="exchangeResponse2"/>
+			</when>
+			<otherwise >
+				<logger level="DEBUG" doc:name="Logger" doc:id="bd8b2499-2a88-4ca6-b7a6-87e91e8af64f" message="Finished retrieving all exchange assets" />
+			</otherwise>
+		</choice>
+		<set-payload value="#[output application/java --- payload ++ vars.exchangeResponse2]" doc:name="Set Payload - Data Assets Aggregated" doc:id="57665095-c3d2-4681-81bb-8575cbabc304" />
+	</sub-flow>
+	<flow name="api-call-exchangeFlow" doc:id="47c893e0-98de-439c-8541-d7c5c043489f" >
+		<foreach doc:name="For Each" doc:id="8c8f7d3c-173a-47dd-a2af-104b27dd28d4" >
+			<flow-ref doc:name="Flow Reference" doc:id="b81394ad-65cc-4d90-94f2-90ac74e661a1" name="api-call-exchange-assets-flow"/>
+		</foreach>
+		<validation:is-false doc:name="Is false" doc:id="7e3134e7-901a-495b-bbf5-851d80fbe7f0" config-ref="Validation_Config" message="Pagination complete"/>
+	</flow>
 	<flow name="api-call-exchange-assets-flow" doc:id="cb45e4dc-7fd3-476d-aff3-7c0a30556088" maxConcurrency="${anypoint.platform.apis.exchange.maxConcurrency}">
-		<logger level="DEBUG" doc:name="Logger" doc:id="c04d063d-9f26-41c8-9f2c-efd64bc5a457" message="Calling Exchange - Assets" />
-		<ee:transform doc:name="Set GraphQL Query" doc:id="17f03534-c094-40bf-a0f9-c16770263fc0" >
-			<ee:variables >
+		<logger level="DEBUG" doc:name="Logger" doc:id="c04d063d-9f26-41c8-9f2c-efd64bc5a457" message="Calling Exchange - Assets #[vars.offset]" />
+		<ee:transform doc:name="Set GraphQL Query" doc:id="17f03534-c094-40bf-a0f9-c16770263fc0">
+			<ee:variables>
 				<ee:set-variable resource="dw/anypoint/anypoint-exchange-build-graphql-query.dwl" variableName="graphqlQuery" />
 			</ee:variables>
 		</ee:transform>
-		<http:request method="POST" doc:name="Get Assets" doc:id="8bc85d2b-02cc-4aa4-b430-5f59fe7ba99c" config-ref="HTTP_Request_configuration" path="${anypoint.platform.apis.exchange.graphql.path}" >
-			<http:body ><![CDATA[#[output application/json
+		<http:request method="POST" doc:name="Get Assets" doc:id="8bc85d2b-02cc-4aa4-b430-5f59fe7ba99c" config-ref="HTTP_Request_configuration" path="${anypoint.platform.apis.exchange.graphql.path}">
+			<http:body><![CDATA[#[output application/json
 ---
 {
   query: vars.graphqlQuery,
